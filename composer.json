@@ -1,0 +1,25 @@
+{
+	"name" : "linuskohl/org-football-data-api",
+	"license" : "MIT",
+	"minimum-stability" : "dev",
+	"authors" : [{
+			"name" : "Linus Kohl",
+			"email" : "linus.kohl@live.com",
+			"homepage" : "https://github.com/linuskohl"
+		}
+	],
+	"support" : {
+		"source" : "https://github.com/linuskohl/"
+	},
+	"require" : {
+		"guzzlehttp/guzzle" : "^6.2"
+	},
+	"keywords" : [
+		"football",
+		"team",
+		"results",
+		"fixtures",
+		"api",
+		"client"
+	]
+}

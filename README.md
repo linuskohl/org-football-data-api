@@ -12,7 +12,7 @@ Unofficial Football-Data.org API client in PHP
 Via Composer
 
 ``` bash
-$ composer require linuskohl/orgFootballDataApi dev-master
+$ composer require linuskohl/org-football-data-api dev-master
 ```
 
 ## License

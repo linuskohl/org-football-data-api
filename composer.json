@@ -21,5 +21,10 @@
 		"fixtures",
 		"api",
 		"client"
-	]
+	],
+	"autoload": {
+        "psr-4": {
+            "linuskohl\\orgFootballDataApi\\": "src"
+        }
+    }
 }

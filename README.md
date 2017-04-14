@@ -5,6 +5,7 @@ Unofficial Football-Data.org API client in PHP
 
 ## Requirements
 -  "guzzlehttp/guzzle": "^6.2"
+-  "netresearch/jsonmapper": "~1.1.1"
 
 
 ## Install

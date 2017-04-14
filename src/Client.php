@@ -38,6 +38,7 @@ class Client
     const RESPONSE_COMPRESSED    = "compressed";
     const REGEXP_VALID_TIMEFRAME = "/^[pn][1-9]{1,2}$/u";
     const REGEXP_VALID_VENUE     = "/^(home|away)$/u";
+    const REGEXP_VALID_LEAGUE    = "/^[\w\d]{2,4}$/";
     
     
     /**
@@ -110,10 +111,22 @@ class Client
     /**
      * 
      * @param integer $competition_id
+     * @param boolean $cached
      */
-    public function getTeamsByCompetition($competition_id)
+    public function getTeamsByCompetition($competition_id, $cached = true)
     {
-        
+        if(is_int($competition_id)) {
+            $query_string = 'competitions/'.$competition_id.'/teams';
+            $parameters = array();
+            $parameters = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
+            $response = $this->get($query_string, $parameters, $cached);
+            $teams = json_decode($response);
+            $res = array();
+            foreach($teams->teams as $team) {
+                array_push($res, $this->jsonMapper->map($team, new Team()));
+            }
+            return $res;
+        }
     }
     
     /**
@@ -123,7 +136,7 @@ class Client
      */
     public function getLeagueTable($competition_id, $matchday = null)
     {
-       
+       // TODO:
     }
     
     /**
@@ -136,21 +149,19 @@ class Client
     {
         if(is_int($competition_id)) {
             $query_string = 'competitions/'.$competition_id.'/fixtures';
-            $parameters = array();
-            
+            $params = array();
+            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
             if(!empty($time_frame) && preg_match(self::REGEXP_VALID_TIMEFRAME,$time_frame)) {
-                $parameters["timeFrame"] = $time_frame;
+                $params["timeFrame"] = $time_frame;
             }
             if(is_int($matchday)) {
-                $parameters["matchday"] = $matchday;
+                $params["matchday"] = $matchday;
             }
-            
-            $response = $this->get($query_string, $parameters, $cached);
+            $query_string .= "?".http_build_query($params);
+            $response = $this->get($query_string, $request_params, $cached);
             $fixtures = json_decode($response);
             $res = array();
-           
             foreach($fixtures->fixtures as $fixture) {
-                
                 array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
             }
             return $res;
@@ -159,66 +170,108 @@ class Client
     
     /**
      * 
-     * @param unknown $time_frame
-     * @param unknown $leagues
+     * @param integer $season
+     * @param string  $time_frame
+     * @param string  $venue
+     * @param boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Fixture[]
      */
     public function getFixturesByTeam($team_id, $season = null, $time_frame = null, $venue = null, $cached = true)
     {
         if(is_int($team_id)) {
             $query_string = 'teams/'.$team_id.'/fixtures';
-            $parameters = array();
-            $parameters = ['headers' => [self::HEADER_RESPONSE_CONT => 'compressed']];
+            $params = array();
+            $request_params= ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
             if(is_int($season)) {
-                $parameters["season"] = $season;
+                $params["season"] = $season;
             }
             if(!empty($time_frame) && preg_match(self::REGEXP_VALID_TIMEFRAME, $time_frame)) {
-                $parameters["timeFrame"] = $time_frame;
+                $params["timeFrame"] = $time_frame;
             }
             if(!empty($venue) && preg_match(self::REGEXP_VALID_VENUE, $venue)) {
-                $parameters["venue"] = $venue;
+                $params["venue"] = $venue;
             }
-            $response = $this->get($query_string, $parameters, $cached);
+            $query_string .= "?".http_build_query($params);
+            $response = $this->get($query_string, $request_params, $cached);
             $fixtures = json_decode($response);
-            $res = array();
             
+            $res = array();
             foreach($fixtures->fixtures as $fixture) {
                 array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
             }
             return $res;
         }
     }
+ 
+    /**
+     * Get fixtures
+     *
+     * @param  string  $time_frame
+     * @param  string[]  $leagues
+     * @param  boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Fixture[]
+     */
+    public function getFixtures($time_frame = null, $leagues = null, $cached = true)
+    {
+        $query_string = 'fixtures';
+        
+        $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
+        $params = array();
+        
+        // add timeFrame
+        if(!empty($time_frame) && preg_match(self::REGEXP_VALID_TIMEFRAME, $time_frame)) {
+            $params["timeFrame"] = $time_frame;
+        }
+        
+        // add leagues to request
+        if(!empty($leagues)) {
+            $leagues_filtered = preg_grep(self::REGEXP_VALID_LEAGUE, $leagues);
+            $params["leagues"] = implode (",", $leagues_filtered);
+        }
+        $query_string .= "?".http_build_query($params);
+        
+        $response = $this->get($query_string, $request_params, $cached);
+        $fixtures = json_decode($response);
+        
+        $res = array();
+        foreach($fixtures->fixtures as $fixture) {
+            array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
+        }
+        return $res;
+    }
+    
     
     /**
+     * Get fixture by id
      * 
-     * @param integer $fixture_id
-     * @param integer $head2head
-     * @param boolean $cached
+     * @param  integer $fixture_id
+     * @param  integer $head2head
+     * @param  boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Fixture
      */
     public function getFixture($fixture_id, $head2head = 10, $cached = true)
     {
         if(is_int($fixture_id)) {
-            $query_string = 'fixtures/'.$fixture_id;
-            $parameters = array();
-            $parameters = ['headers' => [self::HEADER_RESPONSE_CONT => 'compressed']];
+            $query_string = 'fixtures/'.$fixture_id; 
+            $params = array();
+            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => 'compressed']];
             if(is_int($head2head)) {
-                $parameters["head2head"] = $head2head;
+                $params["head2head"] = $head2head;
             }
-            $response = $this->get($query_string, $parameters, $cached);
-            $fixtures = json_decode($response);
-            $res = array();
-            
-            foreach($fixtures->fixtures as $fixture) {
-                
-                array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
-            }
-            return $res;
+            $query_string .= "?".http_build_query($params);
+            $response = $this->get($query_string, $request_params, $cached);
+            $fixture = json_decode($response);
+            exit(print_r($fixture,1));
+            return $this->jsonMapper->map($fixture, new Fixture());
         }
     }
     
     /**
+     * Get team object
      * 
-     * @param integer $team_id
-     * @param boolean $cached
+     * @param  integer $team_id
+     * @param  boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Team
      */
     public function getTeam($team_id, $cached = true)
     {
@@ -232,9 +285,11 @@ class Client
     }
     
     /**
+     * Get list of all players of a team
      * 
      * @param integer $team_id
      * @param boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Player[]
      */
     public function getPlayer($team_id, $cached = true) 
     {
@@ -261,16 +316,16 @@ class Client
     }
     
     /**
+    * Send request to API
     * 
-    * @param string $url
-    * @param mixed[] $parameters
+    * @param  string $url
+    * @param  mixed[] $parameters
     * @return string
     */
     protected function sendRequest($url, $parameters) 
     {
         // send request
         $response = $this->httpClient->request('GET', $url, $parameters);
-        
         // update requests left
         $req_left = $response->getHeader(self::HEADER_RATE_LIMIT);
         if(count($req_left) > 0 && is_numeric($req_left[0])) {
@@ -286,10 +341,11 @@ class Client
     }
     
     /**
-     * Get data
+     * Get data from API or cache 
      *
-     * @param string $url
-     * @param mixed[] $parameters
+     * @param  string  $url
+     * @param  mixed[] $parameters
+     * @param  boolean $cached
      * @return string
      */
     protected function get($url, $parameters = [], $cached = true)
@@ -313,8 +369,8 @@ class Client
     /**
      * Generate a key to cache the query
      * 
-     * @param string $url
-     * @param mixed $parameters
+     * @param  string $url
+     * @param  mixed  $parameters
      * @return string
      */
     protected static function generateCacheKey($url, $parameters) 

@@ -20,16 +20,16 @@ class Team
     /** @var string */
     public $name;
     
-    /** @var string */
+    /** @var string|null */
     public $code;
     
-    /** @var string */
+    /** @var string|null */
     public $shortName;
     
-    /** @var string */
+    /** @var string|null */
     public $squadMarketValue;
     
-    /** @var string */
+    /** @var string|null */
     public $crestUrl;
     
 }

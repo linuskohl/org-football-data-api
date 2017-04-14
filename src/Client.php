@@ -8,6 +8,7 @@ use linuskohl\orgFootballDataApi\models\Player;
 use linuskohl\orgFootballDataApi\models\Fixture;
 use linuskohl\orgFootballDataApi\models\LeagueTable;
 use linuskohl\orgFootballDataApi\models\Standing;
+use linuskohl\orgFootballDataApi\models\Link;
 
 
 /**
@@ -22,14 +23,18 @@ use linuskohl\orgFootballDataApi\models\Standing;
 class Client
 {
     /** Football-Data.org Base url */
-    const BASE_URL = "https://api.football-data.org/v1/";
-    
-    const DEFAULT_USER_AGENT  = "orgFootballDataApi";
-    const DEFAULT_TIMEOUT     = 2.0;
-    
-    const RESPONSE_FULL       = "full";
-    const RESPONSE_MINIFIED   = "minified";
-    const RESPONSE_COMPRESSED = "compressed";
+    const BASE_URL               = "https://api.football-data.org/v1/";
+    const HEADER_RATE_LIMIT      = "X-Requests-Available";
+    const HEADER_COUNTER_RESET   = "X-RequestCounter-Reset";
+    const DEFAULT_REQUESTS_LEFT  = 100;
+    const DEFAULT_TTRECOUP       = 86400;
+    const DEFAULT_USER_AGENT     = "orgFootballDataApi";
+    const DEFAULT_TIMEOUT        = 4.0;
+    const CACHE_ENABLED          = true;
+    const DEFAULT_CACHE_DURATION = 3600;
+    const RESPONSE_FULL          = "full";
+    const RESPONSE_MINIFIED      = "minified";
+    const RESPONSE_COMPRESSED    = "compressed";
     
     /**
      *  @var string|null             $auth_token 
@@ -38,7 +43,9 @@ class Client
      * */
     private $auth_token;
     private $httpClient;
-    private $requests_left;
+    private $jsonMapper;
+    public  $requests_left;
+    public  $ttRecoup;
     
     /**
      * Constructor
@@ -47,7 +54,7 @@ class Client
      */
     public function __construct($auth_token = null) {
         $this->auth_token = $auth_token;
-        $this->httpClient = new GuzzleHttp\Client([
+        $this->httpClient = new \GuzzleHttp\Client([
             'base_uri' => self::BASE_URL,
             'timeout'  => self::DEFAULT_TIMEOUT,
             'headers'  => [
@@ -55,15 +62,32 @@ class Client
                 'User-Agent'   => self::DEFAULT_USER_AGENT,
             ]
         ]);
+        $this->jsonMapper = new \JsonMapper();
+        $this->jsonMapper->bIgnoreVisibility = false;
+        $this->jsonMapper->bEnforceMapType = false;
+        $this->jsonMapper->bExceptionOnUndefinedProperty = false;
+        $this->jsonMapper->bExceptionOnMissingData = false;
+        
+        // init requests left
+        $this->requests_left = self::DEFAULT_REQUESTS_LEFT;
+        $this->ttRecoup      = self::DEFAULT_TTRECOUP;
     }
     
     /**
      * 
-     * @param unknown $season
+     * @param integer $season
+     * @param boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Competition[]|null
      */
-    public function getCompetitions($season = null) 
+    public function getCompetitions($season = null, $cached = true) 
     {
-        
+        $response = $this->get('competitions', $cached);
+        $competitions = json_decode($response);
+        $res = array();
+        foreach($competitions as $competition) {
+            array_push($res, $this->jsonMapper->map($competition, new Competition()));
+        }
+        return $res;
     }
     
     /**
@@ -72,7 +96,7 @@ class Client
      */
     public function getTeamsByCompetition($competition_id)
     {
-        rawurlencode()
+//        rawurlencode();
     }
     
     /**
@@ -132,4 +156,47 @@ class Client
         
     }
     
+    protected function get($url, $cached = true) 
+    {
+        if($cached) {
+            return $this->get_cached($url);
+        } else {
+            return $this->get_uncached($url);
+        }
+    }
+    
+    /**
+    * 
+    * @param unknown $url
+    * @return unknown
+    */
+    protected function get_uncached($url) 
+    {
+        // send request
+        $response = $this->httpClient->request('GET', $url, []);
+        // update requests left
+        $req_left = $response->getHeader(self::HEADER_RATE_LIMIT);
+        if(count($req_left) > 0 && is_numeric($req_left[0])) {
+            $this->requests_left = $req_left[0];
+        }
+        
+        // update time till reset of requests
+        $ttrecoup = $response->getHeader(self::HEADER_COUNTER_RESET);
+        if(count($ttrecoup) > 0 && is_numeric($ttrecoup[0])) {
+            $this->ttRecoup = $ttrecoup[0];
+        }
+        return $response->getBody()->getContents();
+    }
+    
+    protected function get_cached($url)
+    {
+        $cache = \Yii::$app->cache;
+        $data = $cache->get($url);
+        if($data == false) {
+            $data = $this->get_uncached($url);
+            $cache->set($url, $data, self::DEFAULT_CACHE_DURATION);
+        }
+        return $data;
+    }
+        
 }

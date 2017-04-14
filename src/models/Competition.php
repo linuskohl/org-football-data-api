@@ -2,6 +2,8 @@
 
 namespace linuskohl\orgFootballDataApi\models;
 
+use linuskohl\orgFootballDataApi\models\Link;
+
 /**
  * Class Competition
  *
@@ -13,6 +15,9 @@ namespace linuskohl\orgFootballDataApi\models;
 
 class Competition 
 {
+    /** @var \linuskohl\orgFootballDataApi\models\Link[] */
+    public $_links;   
+    
     /** @var integer */
     public $id;
     
@@ -26,12 +31,18 @@ class Competition
     public $year;
     
     /** @var integer */
+    //public $currentMatchday;
+    
+    /** @var integer */
+    public $numberOfMatchdays;
+    
+    /** @var integer */
     public $numberOfTeams;
     
     /** @var integer */
     public $numberOfGames;
     
-    /** @var DateTime */
+    /** @var string */
     public $lastUpdated;
 
 }

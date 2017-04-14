@@ -12,7 +12,8 @@
 		"source" : "https://github.com/linuskohl/"
 	},
 	"require" : {
-		"guzzlehttp/guzzle" : "^6.2"
+		"guzzlehttp/guzzle" : "^6.2",
+		"netresearch/jsonmapper" : "~1.1.1"
 	},
 	"keywords" : [
 		"football",
@@ -22,9 +23,9 @@
 		"api",
 		"client"
 	],
-	"autoload": {
-        "psr-4": {
-            "linuskohl\\orgFootballDataApi\\": "src"
-        }
-    }
+	"autoload" : {
+		"psr-4" : {
+			"linuskohl\\orgFootballDataApi\\" : "src"
+		}
+	}
 }

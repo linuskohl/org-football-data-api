@@ -19,21 +19,22 @@ class Player
     /** @var string */
     public $name;
     
-    /** @var string */
+    /** @var string|null */
     public $position;
     
-    /** @var integer */
+    /** @var integer|null */
     public $jerseyNumber;
     
-    /** @var string */
+    /** @var string|null */
     public $dateOfBirth;
     
-    /** @var string */
+    /** @var string|null */
     public $nationality;
     
-    /** @var string */
+    /** @var string|null */
     public $contractUntil;
     
-    /** @var string */
+    /** @var string|null */
     public $marketValue;
+    
 }

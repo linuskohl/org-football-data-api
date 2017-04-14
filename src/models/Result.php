@@ -13,9 +13,9 @@ namespace linuskohl\orgFootballDataApi\models;
 
 class Result
 {
-    /** @var integer */
+    /** @var integer|null */
     public $goalsHomeTeam;
     
-    /** @var integer */
+    /** @var integer|null */
     public $goalsAwayTeam;
 }

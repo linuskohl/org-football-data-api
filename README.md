@@ -1,7 +1,7 @@
 # orgFootballDataApi
 
-Unofficial Football-Data.org API client in PHP
-
+Unofficial Football-Data.org PHP API client<br>
+Documentation available [here](http://api.football-data.org/documentation) and [here](http://api.football-data.org/docs/v1/index.html).
 
 ## Requirements
 -  "guzzlehttp/guzzle": "^6.2"

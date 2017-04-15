@@ -1,7 +1,8 @@
 # orgFootballDataApi
 
 Unofficial Football-Data.org PHP API client<br>
-Documentation available [here](http://api.football-data.org/documentation) and [here](http://api.football-data.org/docs/v1/index.html).
+Documentation available [here](http://api.football-data.org/documentation) and [here](http://api.football-data.org/docs/v1/index.html).<br>
+Able to serialize responses to custom models via JSON mapper.
 
 ## Requirements
 -  "guzzlehttp/guzzle": "^6.2"

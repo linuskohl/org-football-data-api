@@ -24,18 +24,23 @@ class Client
 {
     /** Football-Data.org Base url */
     const BASE_URL               = "https://api.football-data.org/v1/";
+
     const HEADER_RATE_LIMIT      = "X-Requests-Available";
     const HEADER_COUNTER_RESET   = "X-RequestCounter-Reset";
     const HEADER_RESPONSE_CONT   = "X-Response-Control";
+    
     const DEFAULT_REQUESTS_LEFT  = 100;
     const DEFAULT_TTRECOUP       = 86400;
+
     const DEFAULT_USER_AGENT     = "orgFootballDataApi";
-    const DEFAULT_TIMEOUT        = 4.0;
     const CACHE_ENABLED          = true;
+    const DEFAULT_TIMEOUT        = 4.0;
     const DEFAULT_CACHE_DURATION = 3600;
+    
     const RESPONSE_FULL          = "full";
     const RESPONSE_MINIFIED      = "minified";
     const RESPONSE_COMPRESSED    = "compressed";
+    
     const REGEXP_VALID_TIMEFRAME = "/^[pn][1-9]{1,2}$/u";
     const REGEXP_VALID_VENUE     = "/^(home|away)$/u";
     const REGEXP_VALID_LEAGUE    = "/^[\w\d]{2,4}$/";
@@ -44,7 +49,10 @@ class Client
     /**
      *  @var string|null             $auth_token 
      *  @var \GuzzleHttp\Client|null $httpClient
+     *  @var \JsonMapper|null        $jsonMapper
+     *  @var mixed                   $cache
      *  @var integer                 $requests_left
+     *  @var integer                 $ttRecoup
      * */
     private $auth_token;
     private $httpClient;
@@ -56,8 +64,8 @@ class Client
     
     /**
      * Constructor
-     * @param string $userid
-     * @param string $password
+     * 
+     * @param string $auth_token
      */
     public function __construct($auth_token = null) {
         $this->auth_token = $auth_token;
@@ -69,7 +77,6 @@ class Client
             'headers'  => [
                 'X-Auth-Token'       => $this->auth_token,
                 'User-Agent'         => self::DEFAULT_USER_AGENT,
-                //'X-Response-Control' => 'compressed',
             ]
         ]);
         
@@ -87,12 +94,31 @@ class Client
     
     /**
      * 
-     * @param integer $season
-     * @param boolean $cached
+     * @param  integer $season
+     * @param  boolean $cached
      * @return \linuskohl\orgFootballDataApi\models\Competition[]|null
      * @throws \Exception
      */
     public function getCompetitions($season = null, $cached = true) 
+    {
+        $competitions = $this->getCompetitionsRaw($season, $cached);
+        $res = array();
+        if(is_array($competitions)) {
+            foreach($competitions as $competition) {
+                array_push($res, $this->jsonMapper->map($competition, new Competition()));
+            }
+        }
+        return $res;
+    }
+
+    /**
+     *
+     * @param integer $season
+     * @param boolean $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getCompetitionsRaw($season = null, $cached = true)
     {
         $query_string = 'competitions/';
         $parameters = array();
@@ -100,33 +126,45 @@ class Client
             $parameters["season"] = $season;
         }
         $response = $this->get('competitions', $parameters, $cached);
-        $competitions = json_decode($response);
+        $competitions = json_decode($response, true);
+        return $competitions;
+    }
+    
+    
+    /**
+     * 
+     * @param  integer $competition_id
+     * @param  boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Team[]
+     */
+    public function getTeamsByCompetition($competition_id, $cached = true)
+    {
+        $teams_response = $this->getTeamsByCompetitionRaw($competition_id, $cached);
         $res = array();
-        foreach($competitions as $competition) {
-            array_push($res, $this->jsonMapper->map($competition, new Competition()));
+        if(is_array($teams_response)) {
+            foreach($teams_response["teams"] as $team) {
+                array_push($res, $this->jsonMapper->map($team, new Team()));
+            }
         }
         return $res;
     }
     
     /**
-     * 
-     * @param integer $competition_id
-     * @param boolean $cached
+     *
+     * @param  integer $competition_id
+     * @param  boolean $cached
+     * @return mixed
      */
-    public function getTeamsByCompetition($competition_id, $cached = true)
+    public function getTeamsByCompetitionRaw($competition_id, $cached = true)
     {
         if(is_int($competition_id)) {
             $query_string = 'competitions/'.$competition_id.'/teams';
             $parameters = array();
             $parameters = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
             $response = $this->get($query_string, $parameters, $cached);
-            $teams = json_decode($response);
-            $res = array();
-            foreach($teams->teams as $team) {
-                array_push($res, $this->jsonMapper->map($team, new Team()));
-            }
-            return $res;
-        }
+            $teams = json_decode($response, true);
+            return $teams;
+        } 
     }
     
     /**
@@ -140,12 +178,34 @@ class Client
     }
     
     /**
-     * @param integer $id
-     * @param string  $time_frame
-     * @param integer $matchday
-     * @param boolean $cached
+     * @param  integer $id
+     * @param  string  $time_frame
+     * @param  integer $matchday
+     * @param  boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Fixture[]
      */
     public function getFixturesByCompetition($competition_id, $time_frame = null, $matchday = null, $cached = true)
+    {
+        
+        $fixtures_response = $this->getFixturesByCompetitionRaw($competition_id, $time_frame, $matchday, $cached);
+        $res = array();
+        if(is_array($fixtures_response["fixtures"])) {
+            foreach($fixtures_response["fixtures"] as $fixture) {
+                array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
+            }
+        }
+        return $res;
+    }
+    
+    /**
+     * @param  integer $id
+     * @param  string  $time_frame
+     * @param  integer $matchday
+     * @param  boolean $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getFixturesByCompetitionRaw($competition_id, $time_frame = null, $matchday = null, $cached = true)
     {
         if(is_int($competition_id)) {
             $query_string = 'competitions/'.$competition_id.'/fixtures';
@@ -159,24 +219,42 @@ class Client
             }
             $query_string .= "?".http_build_query($params);
             $response = $this->get($query_string, $request_params, $cached);
-            $fixtures = json_decode($response);
-            $res = array();
-            foreach($fixtures->fixtures as $fixture) {
-                array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
-            }
-            return $res;
+            $fixtures = json_decode($response,true);
+            return $fixtures;
         }
     }
     
     /**
      * 
-     * @param integer $season
-     * @param string  $time_frame
-     * @param string  $venue
-     * @param boolean $cached
+     * @param  integer $season
+     * @param  string  $time_frame
+     * @param  string  $venue
+     * @param  boolean $cached
      * @return \linuskohl\orgFootballDataApi\models\Fixture[]
+     * @throws \Exception
      */
     public function getFixturesByTeam($team_id, $season = null, $time_frame = null, $venue = null, $cached = true)
+    {
+        $fixtures_response = $this->getFixturesByTeamRaw($team_id, $season, $time_frame, $venue, $cached);
+        $res = array();
+        if(is_array($fixtures_response["fixtures"])) {
+            foreach($fixtures_response["fixtures"] as $fixture) {
+                array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
+            }
+        }
+        return $res;
+    }
+    
+    /**
+     *
+     * @param  integer $season
+     * @param  string  $time_frame
+     * @param  string  $venue
+     * @param  boolean $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getFixturesByTeamRaw($team_id, $season = null, $time_frame = null, $venue = null, $cached = true)
     {
         if(is_int($team_id)) {
             $query_string = 'teams/'.$team_id.'/fixtures';
@@ -193,25 +271,42 @@ class Client
             }
             $query_string .= "?".http_build_query($params);
             $response = $this->get($query_string, $request_params, $cached);
-            $fixtures = json_decode($response);
-            
-            $res = array();
-            foreach($fixtures->fixtures as $fixture) {
-                array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
-            }
-            return $res;
+            $fixtures = json_decode($response, true);
+            return $fixtures;
         }
     }
  
     /**
      * Get fixtures
      *
-     * @param  string  $time_frame
+     * @param  string    $time_frame
      * @param  string[]  $leagues
-     * @param  boolean $cached
+     * @param  boolean   $cached
      * @return \linuskohl\orgFootballDataApi\models\Fixture[]
+     * @throws \Exception
      */
     public function getFixtures($time_frame = null, $leagues = null, $cached = true)
+    {
+        $fixtures_response = $this->getFixturesRaw($time_frame, $leagues, $cached);
+        $res = array();
+        if(is_array($fixtures_response["fixtures"])) {
+            foreach($fixtures_response["fixtures"] as $fixture) {
+                array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
+            }
+        }
+        return $res;
+    }
+    
+    /**
+     * Get fixtures
+     *
+     * @param  string    $time_frame
+     * @param  string[]  $leagues
+     * @param  boolean   $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getFixturesRaw($time_frame = null, $leagues = null, $cached = true)
     {
         $query_string = 'fixtures';
         
@@ -231,15 +326,9 @@ class Client
         $query_string .= "?".http_build_query($params);
         
         $response = $this->get($query_string, $request_params, $cached);
-        $fixtures = json_decode($response);
-        
-        $res = array();
-        foreach($fixtures->fixtures as $fixture) {
-            array_push($res, $this->jsonMapper->map($fixture, new Fixture()));
-        }
-        return $res;
+        $fixtures = json_decode($response, true);
+        return $fixtures;
     }
-    
     
     /**
      * Get fixture by id
@@ -248,11 +337,27 @@ class Client
      * @param  integer $head2head
      * @param  boolean $cached
      * @return \linuskohl\orgFootballDataApi\models\Fixture
+     * @throws \Exception
      */
     public function getFixture($fixture_id, $head2head = 10, $cached = true)
     {
+        $fixture = $this->getFixtureRaw($fixture_id, $head2head, $cached);
+        return $this->jsonMapper->map($fixture, new Fixture());
+    }
+    
+    /**
+     * Get fixture by id
+     *
+     * @param  integer $fixture_id
+     * @param  integer $head2head
+     * @param  boolean $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getFixtureRaw($fixture_id, $head2head = 10, $cached = true)
+    {
         if(is_int($fixture_id)) {
-            $query_string = 'fixtures/'.$fixture_id; 
+            $query_string = 'fixtures/'.$fixture_id;
             $params = array();
             $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => 'compressed']];
             if(is_int($head2head)) {
@@ -260,9 +365,8 @@ class Client
             }
             $query_string .= "?".http_build_query($params);
             $response = $this->get($query_string, $request_params, $cached);
-            $fixture = json_decode($response);
-            exit(print_r($fixture,1));
-            return $this->jsonMapper->map($fixture, new Fixture());
+            $fixture = json_decode($response,true);
+            return $fixture;
         }
     }
     
@@ -272,37 +376,69 @@ class Client
      * @param  integer $team_id
      * @param  boolean $cached
      * @return \linuskohl\orgFootballDataApi\models\Team
+     * @throws \Exception
      */
     public function getTeam($team_id, $cached = true)
+    {
+        $team = $this->getTeamRaw($team_id, $cached);
+        return $this->jsonMapper->map($team, new Team());
+    }
+    
+    /**
+     * Get team object
+     *
+     * @param  integer $team_id
+     * @param  boolean $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getTeamRaw($team_id, $cached = true)
     {
         $parameters = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
         if(is_int($team_id)) {
             $query_string = 'teams/'.$team_id;
             $response = $this->get($query_string, $parameters, $cached);
-            $team = json_decode($response);            
-            return $this->jsonMapper->map($team, new Team());
+            $team = json_decode($response, true);
+            return $team;
         }
     }
     
     /**
      * Get list of all players of a team
      * 
-     * @param integer $team_id
-     * @param boolean $cached
+     * @param  integer $team_id
+     * @param  boolean $cached
      * @return \linuskohl\orgFootballDataApi\models\Player[]
+     * @throws \Exception
      */
     public function getPlayer($team_id, $cached = true) 
+    {
+        $players_response = $this->getPlayerRaw($team_id, $cached);
+        $res = array();
+        if(is_array($players_response["players"] )) {
+            foreach($players_response["players"] as $player) {
+                array_push($res, $this->jsonMapper->map($player, new Player()));
+            }
+        }
+        return $res;
+    }
+    
+    /**
+     * Get list of all players of a team
+     *
+     * @param  integer $team_id
+     * @param  boolean $cached
+     * @return mixed 
+     * @throws \Exception
+     */
+    public function getPlayerRaw($team_id, $cached = true)
     {
         if(is_int($team_id)) {
             $parameters = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
             $query_string = '/v1/teams/'.$team_id.'/players';
             $response = $this->get($query_string, $parameters, $cached);
-            $players = json_decode($response);
-            $res = array();
-            foreach($players->players as $player) {
-                array_push($res, $this->jsonMapper->map($player, new Player()));
-            }
-            return $res;
+            $players = json_decode($response, true);
+            return $players;
         }
     }
     
@@ -318,7 +454,7 @@ class Client
     /**
     * Send request to API
     * 
-    * @param  string $url
+    * @param  string  $url
     * @param  mixed[] $parameters
     * @return string
     */

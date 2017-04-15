@@ -18,4 +18,13 @@ class Result
     
     /** @var integer|null */
     public $goalsAwayTeam;
+    
+    /** @var \linuskoh\orgFootballDataApi\models\Result|null */
+    public $halfTime;
+    
+    /** @var \linuskoh\orgFootballDataApi\models\Result|null */
+    public $extraTime;
+    
+    /** @var \linuskoh\orgFootballDataApi\models\Result|null */
+    public $penaltyShootout;
 }

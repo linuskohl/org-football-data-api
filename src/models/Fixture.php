@@ -14,6 +14,13 @@ namespace linuskohl\orgFootballDataApi\models;
 class Fixture
 {
     
+    const STATUS_SCHEDULED  = "SCHEDULED"; 
+    const STATUS_CANCELED   = "CANCELED";
+    const STATUS_TIMED      = "TIMED";
+    const STATUS_IN_PLAY    = "IN_PLAY";
+    const STATUS_POSTPONED  = "POSTPONED";
+    const STATUS_FINISHED   = "FINISHED";
+    
     /** @var integer */
     public $id;
 
@@ -25,6 +32,9 @@ class Fixture
     
     /** @var integer */
     public $matchday;
+    
+    /** @var string|null */
+    public $status;
     
     /** @var string */
     public $homeTeamName;

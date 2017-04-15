@@ -29,8 +29,8 @@ class Client
     const HEADER_COUNTER_RESET   = "X-RequestCounter-Reset";
     const HEADER_RESPONSE_CONT   = "X-Response-Control";
     
-    const DEFAULT_REQUESTS_LEFT  = 100;
-    const DEFAULT_TTRECOUP       = 86400;
+    const DEFAULT_REQUESTS_LEFT  = 50;
+    const DEFAULT_TTRECOUP       = 60;
 
     const DEFAULT_USER_AGENT     = "orgFootballDataApi";
     const CACHE_ENABLED          = true;
@@ -178,7 +178,7 @@ class Client
     }
     
     /**
-     * @param  integer $id
+     * @param  integer $competition_id
      * @param  string  $time_frame
      * @param  integer $matchday
      * @param  boolean $cached
@@ -198,7 +198,7 @@ class Client
     }
     
     /**
-     * @param  integer $id
+     * @param  integer $competition_id
      * @param  string  $time_frame
      * @param  integer $matchday
      * @param  boolean $cached
@@ -226,6 +226,7 @@ class Client
     
     /**
      * 
+     * @param  integer $team_id
      * @param  integer $season
      * @param  string  $time_frame
      * @param  string  $venue
@@ -246,7 +247,7 @@ class Client
     }
     
     /**
-     *
+     * @param  integer $team_id
      * @param  integer $season
      * @param  string  $time_frame
      * @param  string  $venue
@@ -483,6 +484,7 @@ class Client
      * @param  mixed[] $parameters
      * @param  boolean $cached
      * @return string
+     * @throws \Exception
      */
     protected function get($url, $parameters = [], $cached = true)
     {

@@ -81,3 +81,7 @@ CL|Europe|Champions-League
 EL|Europe|UEFA-Cup
 EC|Europe|European-Cup of Nations
 WC|World|World-Cup
+Not documented ||
+ENL|England|English National League
+EL2|England|League Two
+BSA|Brazil|Campeonato Brasileiro da Serie A

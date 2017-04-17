@@ -19,12 +19,29 @@ class Result
     /** @var integer|null */
     public $goalsAwayTeam;
     
-    /** @var \linuskoh\orgFootballDataApi\models\Result|null */
+    /** @var \linuskohl\orgFootballDataApi\models\Result|null */
     public $halfTime;
     
-    /** @var \linuskoh\orgFootballDataApi\models\Result|null */
+    /** @var \linuskohl\orgFootballDataApi\models\Result|null */
     public $extraTime;
     
-    /** @var \linuskoh\orgFootballDataApi\models\Result|null */
+    /** @var \linuskohl\orgFootballDataApi\models\Result|null */
     public $penaltyShootout;
+    
+    /**
+     * @param integer|null $ght
+     */
+    public function setGht($ght)
+    {
+        $this->goalsHomeTeam = $ght;
+    }
+    
+    /**
+     * @param integer|null $aht
+     */
+    public function setAht($gat)
+    {
+        $this->goalsAwayTeam = $gat;
+    }
+    
 }

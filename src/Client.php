@@ -9,6 +9,8 @@ use linuskohl\orgFootballDataApi\models\Fixture;
 use linuskohl\orgFootballDataApi\models\LeagueTable;
 use linuskohl\orgFootballDataApi\models\Standing;
 use linuskohl\orgFootballDataApi\models\Link;
+use linuskohl\orgFootballDataApi\models\Head2Head;
+use linuskohl\orgFootballDataApi\models\FixtureResponse;
 
 
 /**
@@ -121,11 +123,13 @@ class Client
     public function getCompetitionsRaw($season = null, $cached = true)
     {
         $query_string = 'competitions/';
-        $parameters = array();
+        $params = array();
+        $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
         if(is_int($season)) {
-            $parameters["season"] = $season;
+            $params["season"] = $season;
         }
-        $response = $this->get('competitions', $parameters, $cached);
+        $query_string .= "?".http_build_query($params);
+        $response = $this->get($query_string, $request_params, $cached);
         $competitions = json_decode($response, true);
         return $competitions;
     }
@@ -337,13 +341,13 @@ class Client
      * @param  integer $fixture_id
      * @param  integer $head2head
      * @param  boolean $cached
-     * @return \linuskohl\orgFootballDataApi\models\Fixture
+     * @return \linuskohl\orgFootballDataApi\models\FixtureResponse
      * @throws \Exception
      */
     public function getFixture($fixture_id, $head2head = 10, $cached = true)
     {
         $fixture = $this->getFixtureRaw($fixture_id, $head2head, $cached);
-        return $this->jsonMapper->map($fixture, new Fixture());
+        return $this->jsonMapper->map($fixture, new FixtureResponse());
     }
     
     /**
@@ -357,16 +361,16 @@ class Client
      */
     public function getFixtureRaw($fixture_id, $head2head = 10, $cached = true)
     {
-        if(is_int($fixture_id)) {
+        if(is_numeric($fixture_id)) {
             $query_string = 'fixtures/'.$fixture_id;
             $params = array();
-            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => 'compressed']];
+            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_COMPRESSED]];
             if(is_int($head2head)) {
                 $params["head2head"] = $head2head;
             }
             $query_string .= "?".http_build_query($params);
             $response = $this->get($query_string, $request_params, $cached);
-            $fixture = json_decode($response,true);
+            $fixture = json_decode($response, true);
             return $fixture;
         }
     }

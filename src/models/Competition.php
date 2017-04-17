@@ -30,19 +30,19 @@ class Competition
     /** @var integer */
     public $year;
     
-    /** @var integer */
-    //public $currentMatchday;
+    /** @var integer|null */
+    public $currentMatchday;
     
-    /** @var integer */
+    /** @var integer|null */
     public $numberOfMatchdays;
     
-    /** @var integer */
+    /** @var integer|null */
     public $numberOfTeams;
     
-    /** @var integer */
+    /** @var integer|null */
     public $numberOfGames;
     
-    /** @var string */
+    /** @var string|null */
     public $lastUpdated;
 
 }

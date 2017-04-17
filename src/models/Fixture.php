@@ -2,6 +2,8 @@
 
 namespace linuskohl\orgFootballDataApi\models;
 
+use \linuskohl\orgFootballDataApi\models\Result;
+
 /**
  * Class Fixture
  *
@@ -50,5 +52,53 @@ class Fixture
     
     /** @var \linuskohl\orgFootballDataApi\models\Result */
     public $result;
+    
+    /**
+     * @param integer $cId
+     */
+    public function setCId($cId) 
+    {
+        $this->competitionId = $cId;
+    }
+    
+    /**
+     * @param string|null $stat
+     */
+    public function setStat($stat) 
+    {
+        $this->status = $stat;
+    }
+    
+    /**
+     * @param integer|null $mday
+     */
+    public function setMday($mday) 
+    {
+        $this->matchday = $mday;
+    }
+    
+    /**
+     * @param integer|null $htId
+     */
+    public function setHtId($htId) 
+    {
+        $this->homeTeamId = $htId;
+    }
+    
+    /**
+     * @param integer|null $atId
+     */
+    public function setAtId($atId) 
+    {
+        $this->awayTeamId = $atId;
+    }
+    
+    /**
+     * @param \linuskohl\orgFootballDataApi\models\Result $res
+     */
+    public function setRes($res) {
+        $this->result = $res;
+    }
+    
     
 }

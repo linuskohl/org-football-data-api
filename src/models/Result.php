@@ -37,9 +37,9 @@ class Result
     }
     
     /**
-     * @param integer|null $aht
+     * @param integer|null $gat
      */
-    public function setAht($gat)
+    public function setGat($gat)
     {
         $this->goalsAwayTeam = $gat;
     }

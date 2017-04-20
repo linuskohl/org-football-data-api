@@ -315,7 +315,7 @@ class Client
     {
         $query_string = 'fixtures';
         
-        $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
+        //$request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_COMPRESSED]];
         $params = array();
         
         // add timeFrame
@@ -341,7 +341,7 @@ class Client
      * @param  integer $fixture_id
      * @param  integer $head2head
      * @param  boolean $cached
-     * @return \linuskohl\orgFootballDataApi\models\FixtureResponse
+     * @return \linuskohl\orgFootballDataApi\models\FixtureResponse|null
      * @throws \Exception
      */
     public function getFixture($fixture_id, $head2head = 10, $cached = true)
@@ -361,10 +361,11 @@ class Client
      */
     public function getFixtureRaw($fixture_id, $head2head = 10, $cached = true)
     {
+        $cached = false;
         if(is_numeric($fixture_id)) {
             $query_string = 'fixtures/'.$fixture_id;
             $params = array();
-            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_COMPRESSED]];
+            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
             if(is_int($head2head)) {
                 $params["head2head"] = $head2head;
             }

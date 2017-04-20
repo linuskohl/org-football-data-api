@@ -16,7 +16,7 @@ use \linuskohl\orgFootballDataApi\models\Result;
 class Fixture
 {
     
-    const STATUS_SCHEDULED  = "SCHEDULED"; 
+    const STATUS_SCHEDULED  = "SCHEDULED";
     const STATUS_CANCELED   = "CANCELED";
     const STATUS_TIMED      = "TIMED";
     const STATUS_IN_PLAY    = "IN_PLAY";
@@ -38,21 +38,24 @@ class Fixture
     /** @var string|null */
     public $status;
     
-    /** @var string */
+    /** @var string|null */
     public $homeTeamName;
     
     /** @var integer */
     public $homeTeamId;
     
-    /** @var string */
+    /** @var string|null */
     public $awayTeamName;
     
     /** @var integer */
     public $awayTeamId;
     
-    /** @var \linuskohl\orgFootballDataApi\models\Result */
+    /** @var \linuskohl\orgFootballDataApi\models\Result|null */
     public $result;
-    
+
+    /** @var  \linuskohl\orgFootballDataApi\models\Odds|null */
+    public $odds;
+
     /**
      * @param integer $cId
      */
@@ -99,6 +102,5 @@ class Fixture
     public function setRes($res) {
         $this->result = $res;
     }
-    
-    
+
 }

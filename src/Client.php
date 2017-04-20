@@ -361,7 +361,6 @@ class Client
      */
     public function getFixtureRaw($fixture_id, $head2head = 10, $cached = true)
     {
-        $cached = false;
         if(is_numeric($fixture_id)) {
             $query_string = 'fixtures/'.$fixture_id;
             $params = array();

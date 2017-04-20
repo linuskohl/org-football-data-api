@@ -2,6 +2,7 @@
 
 namespace linuskohl\orgFootballDataApi;
 
+use common\models\footballdataorg\Competitions;
 use linuskohl\orgFootballDataApi\models\Competition;
 use linuskohl\orgFootballDataApi\models\Team;
 use linuskohl\orgFootballDataApi\models\Player;
@@ -93,7 +94,40 @@ class Client
         $this->requests_left = self::DEFAULT_REQUESTS_LEFT;
         $this->ttRecoup      = self::DEFAULT_TTRECOUP;
     }
-    
+
+    /**
+     * Get competition by id
+     *
+     * @param  integer $competition_id
+     * @param  boolean $cached
+     * @return \linuskohl\orgFootballDataApi\models\Competition|null
+     * @throws \Exception
+     */
+    public function getCompetition($competition_id, $cached = true)
+    {
+        $competition = $this->getCompetitionRaw($competition_id, $cached);
+        return $this->jsonMapper->map($competition, new Competition());
+    }
+
+    /**
+     * Get competition by id raw
+     *
+     * @param  integer $competition_id
+     * @param  boolean $cached
+     * @return mixed
+     * @throws \Exception
+     */
+    public function getCompetitionRaw($competition_id, $cached = true)
+    {
+        if(is_numeric($competition_id)) {
+            $query_string = 'competitions/'.$competition_id;
+            $request_params = ['headers' => [self::HEADER_RESPONSE_CONT => self::RESPONSE_MINIFIED]];
+            $response = $this->get($query_string, $request_params, $cached);
+            $competition = json_decode($response, true);
+            return $competition;
+        }
+    }
+
     /**
      * 
      * @param  integer $season
